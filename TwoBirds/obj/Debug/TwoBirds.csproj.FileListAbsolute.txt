@@ -1,0 +1,8 @@
+C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds\bin\Debug\TwoBirds.dll
+C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds\bin\Debug\TwoBirds.pdb
+C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds\bin\Debug\Xamarin.Forms.Core.dll
+C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds\bin\Debug\Xamarin.Forms.Xaml.dll
+C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds\bin\Debug\Xamarin.Forms.Core.xml
+C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds\bin\Debug\Xamarin.Forms.Xaml.xml
+C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds\obj\Debug\TwoBirds.dll
+C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds\obj\Debug\TwoBirds.pdb

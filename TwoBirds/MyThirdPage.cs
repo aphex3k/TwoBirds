@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Xamarin.Forms;
 
 namespace TwoBirds
@@ -11,13 +12,18 @@ namespace TwoBirds
 	{
 		public String Heading;
 
+		public List<String> Directions = new List<String>();
+
+		public ListView MyListView;
+
 		public MyThirdPage ()
 		{
-			Title = "Third Page";
+			Title = "Directions";
 
-			Heading = "This is the third page";
+			Heading = "This is the directions page";
 
-			// rendering of this page is done natively on each platform, otherwise it will just be blank
+			MyListView = new ListView {ItemsSource = Directions.ToArray()};
+			Content = MyListView;
 		}
 	}
 }

@@ -15,8 +15,10 @@ namespace TwoBirds
 	{
 	    private TableView _tableView;
 	    private Button _myButton;
-	    private EntryCell _myLocation;
-	    private bool _addButton = true;
+		public static EntryCell MyLocation;
+		public static List<EntryCell> ErrandsList = new List<EntryCell>();
+		private bool _addButton = true;
+		private Page _page;
 
         public MyFirstPage()
         {
@@ -40,39 +42,40 @@ namespace TwoBirds
 		        View = _myButton
 	        };
 
-	        _myLocation = new EntryCell
+	        MyLocation = new EntryCell
 	        {
 		        Placeholder = "Current Location"
 	        };
 
-			//GetGeoLocation();
+	        for (int i = 0; i < 3; i++)
+	        {
+		        EntryCell cell = new EntryCell {Placeholder = "Type text here"};
+		        ErrandsList.Add(cell);
+	        }
 
-			_tableView = new TableView
+	        ErrandsList[0].Text = "1323 Highland Ave, Hollywood, CA 90028";
+
+	        _tableView = new TableView
             {
                 Intent = TableIntent.Form,
                 Root = new TableRoot()
                 {
 					new TableSection("My Location")
 					{
-						_myLocation
+						MyLocation
 					},
                     new TableSection("Errand 1")
                     {
-                        new EntryCell
-                        {
-                            Placeholder = "Type text here"
-                        }
+						ErrandsList[0]
 					},	
                     new TableSection("Errand 2")
                     {
-                        new EntryCell
-                        {
-                            Placeholder = "Type text here"
-                        },
+						ErrandsList[1],
 						myViewCell
 					}
                 }
             };
+
 
             Button button = new Button
             {
@@ -110,7 +113,8 @@ namespace TwoBirds
                     }
                 };
             }
-        }
+			_page = (Page)Activator.CreateInstance(typeof(MySecondPage));
+		}
 
 	    void OnMyButtonClicked(object sender, EventArgs e)
 	    {
@@ -119,10 +123,7 @@ namespace TwoBirds
 				_tableView.Root.Add(
 					new TableSection("Errand 3")
                     {
-                        new EntryCell
-                        {
-                            Placeholder = "Type text here"
-                        }
+						ErrandsList[2]
                     }
 				);
 				_myButton.Text = "-";
@@ -138,9 +139,8 @@ namespace TwoBirds
 
         void OnButtonClicked(object sender, EventArgs e)
         {
-			Page page = (Page)Activator.CreateInstance(typeof(MySecondPage));
 			//Page page = (Page)Activator.CreateInstance(typeof(MapViewController));
-			this.Navigation.PushAsync(page);
+			this.Navigation.PushAsync(_page);
         }
 	}
 }

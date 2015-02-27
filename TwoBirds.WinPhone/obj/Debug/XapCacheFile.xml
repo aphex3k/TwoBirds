@@ -1,5 +1,5 @@
-﻿<xapCache source="C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.WinPhone\Bin\Debug\PhoneApp1_Debug_AnyCPU.xap" wasSigned="False" wasTritonized="False" certificateThumbprint="" TimeStampUrl="" signKeyFile="" signKeyPassword="" lastWriteTime="2/25/2015 11:52:33 AM">
-  <file source="C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.WinPhone\obj\Debug\TwoBirds.WinPhone.dll" archivePath="TwoBirds.WinPhone.dll" lastWriteTime="2/25/2015 11:52:32 AM" />
+﻿<xapCache source="C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.WinPhone\Bin\Debug\PhoneApp1_Debug_AnyCPU.xap" wasSigned="False" wasTritonized="False" certificateThumbprint="" TimeStampUrl="" signKeyFile="" signKeyPassword="" lastWriteTime="2/26/2015 4:24:15 PM">
+  <file source="C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.WinPhone\obj\Debug\TwoBirds.WinPhone.dll" archivePath="TwoBirds.WinPhone.dll" lastWriteTime="2/26/2015 4:24:14 PM" />
   <file source="C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.WinPhone\Assets\AlignmentGrid.png" archivePath="Assets\AlignmentGrid.png" lastWriteTime="12/1/2014 5:06:06 PM" />
   <file source="C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.WinPhone\Assets\Tiles\FlipCycleTileLarge.png" archivePath="Assets\Tiles\FlipCycleTileLarge.png" lastWriteTime="12/1/2014 5:06:06 PM" />
   <file source="C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.WinPhone\Assets\Tiles\FlipCycleTileSmall.png" archivePath="Assets\Tiles\FlipCycleTileSmall.png" lastWriteTime="12/1/2014 5:06:06 PM" />
@@ -15,7 +15,7 @@
   <file source="C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.WinPhone\Bin\Debug\Assets\ApplicationIcon.png" archivePath="Assets\ApplicationIcon.png" lastWriteTime="12/1/2014 5:06:06 PM" />
   <file source="C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.WinPhone\Bin\Debug\Assets\Tiles\FlipCycleTileMedium.png" archivePath="Assets\Tiles\FlipCycleTileMedium.png" lastWriteTime="12/1/2014 5:06:06 PM" />
   <file source="C:\Users\Brett\Documents\Xamarin\TwoBirds\packages\WPtoolkit.4.2013.08.16\lib\wp8\Microsoft.Phone.Controls.Toolkit.dll" archivePath="Microsoft.Phone.Controls.Toolkit.dll" lastWriteTime="12/3/2014 1:13:45 PM" />
-  <file source="C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds\bin\Debug\TwoBirds.dll" archivePath="TwoBirds.dll" lastWriteTime="2/25/2015 11:50:52 AM" />
+  <file source="C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds\bin\Debug\TwoBirds.dll" archivePath="TwoBirds.dll" lastWriteTime="2/26/2015 2:39:47 PM" />
   <file source="C:\Users\Brett\Documents\Xamarin\TwoBirds\packages\Xamarin.Forms.1.3.4.6332\lib\WP80\Xamarin.Forms.Core.dll" archivePath="Xamarin.Forms.Core.dll" lastWriteTime="2/25/2015 10:42:07 AM" />
   <file source="C:\Users\Brett\Documents\Xamarin\TwoBirds\packages\Xamarin.Forms.1.3.4.6332\lib\WP80\Xamarin.Forms.Platform.WP8.dll" archivePath="Xamarin.Forms.Platform.WP8.dll" lastWriteTime="2/25/2015 10:42:07 AM" />
   <file source="C:\Users\Brett\Documents\Xamarin\TwoBirds\packages\Xamarin.Forms.1.3.4.6332\lib\WP80\Xamarin.Forms.Xaml.dll" archivePath="Xamarin.Forms.Xaml.dll" lastWriteTime="2/25/2015 10:42:07 AM" />

@@ -12,14 +12,22 @@ namespace TwoBirds
 	public class MySecondPage : ContentPage
 	{
 		public String Heading;
+		public Page ThirdPage;
 
 		public MySecondPage ()
 		{
 			Title = "Map";
 
-			Heading = "This is the second page";
+			Heading = "This is the map page";
 
 			// rendering of this page is done natively on each platform
+
+			ThirdPage = (Page)Activator.CreateInstance(typeof(MyThirdPage));
+		}
+
+		public void HandleTouchUpInside(object sender, EventArgs ea)
+		{
+			this.Navigation.PushAsync(ThirdPage);
 		}
 	}
 }

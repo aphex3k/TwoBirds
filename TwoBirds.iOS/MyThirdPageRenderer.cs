@@ -1,15 +1,12 @@
-﻿using System;
-using System.Drawing;
-using Xamarin.Forms.Platform.iOS;
+﻿using System.Drawing;
 using MonoTouch.UIKit;
-using Xamarin.Forms;
-
+using Xamarin.Forms.Platform.iOS;
 
 // This ExportRenderer command tells Xamarin.Forms to use this renderer
 // instead of the built-in one for this page
-[assembly:ExportRenderer(typeof(TwoBirds.MyThirdPage), typeof(TwoBirds.MyThirdPageRenderer))]
+//[assembly:ExportRenderer(typeof(TwoBirds.MyThirdPage), typeof(TwoBirds.MyThirdPageRenderer))]
 
-namespace TwoBirds
+namespace TwoBirds.iOS
 {
 	/// <summary>
 	/// Render this page using platform-specific UIKit controls

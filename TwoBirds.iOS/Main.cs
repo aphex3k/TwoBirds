@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using MonoTouch.Foundation;
-using MonoTouch.UIKit;
+﻿using MonoTouch.UIKit;
 
-namespace TwoBirds
+namespace TwoBirds.iOS
 {
 	public class Application
 	{

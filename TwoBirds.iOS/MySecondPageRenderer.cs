@@ -1,35 +1,65 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using MonoTouch.CoreLocation;
 using MonoTouch.Foundation;
 using MonoTouch.MapKit;
-using Xamarin.Forms.Platform.iOS;
 using MonoTouch.UIKit;
+using TwoBirds.iOS;
 using Xamarin.Forms;
+using Xamarin.Forms.Platform.iOS;
 
 // This ExportRenderer command tells Xamarin.Forms to use this renderer
 // instead of the built-in one for this page
-[assembly:ExportRenderer(typeof(TwoBirds.MySecondPage), typeof(TwoBirds.MySecondPageRenderer))]
+[assembly:ExportRenderer(typeof(TwoBirds.MySecondPage), typeof(MySecondPageRenderer))]
 
-namespace TwoBirds
+namespace TwoBirds.iOS
 {
 	/// <summary>
 	/// Render this page using platform-specific UIKit controls
 	/// </summary>
 	public class MySecondPageRenderer : PageRenderer
 	{
-		MKMapView map;
+		private MySecondPage _page;
+		static MKMapView map;
+		private MKRoute[] _myRoutes;
 		MKMapViewDelegate _mapDelegate;
+
+		CLLocationManager _iPhoneLocationManager;
+		private CLGeocoder _iPhoneGeocoder;
+
+		private bool _recenterMap = true;
 
 		double lat_origin = 33.285287;
 		double long_origin = -117.189992;
-		string title_origin = "Melissa's House";
-		string subtitle_origin = "Melissa lives here!";
+		string title_origin = "My Location";
+		string subtitle_origin = "Starting Point";
 
 		double lat_dest = 33.128718;
 		double long_dest = -117.159529;
 		string title_dest = "Cal State San Marcos";
 		string subtitle_dest = "Central campus location";
+
+		private BasicMapAnnotation _myLocation;
+		private List<BasicMapAnnotation> _errandLocationList = new List<BasicMapAnnotation>();
+
+		private bool _routeHasBeenCreated = false;
+
+		protected override void OnElementChanged(VisualElementChangedEventArgs e)
+		{
+			base.OnElementChanged(e);
+
+			_page = e.NewElement as MySecondPage;
+
+			var hostViewController = ViewController;
+
+			//var viewController = new UIViewController();
+
+			//hostViewController.AddChildViewController(viewController);
+			//hostViewController.View.Add(viewController.View);
+
+			//viewController.DidMoveToParentViewController(hostViewController);
+		}
 
 		public override void LoadView()
 		{
@@ -42,14 +72,16 @@ namespace TwoBirds
 			map.Delegate = _mapDelegate;
 
 			View = map;
-
-			//New stuff for directions:
-			CreateRoute();
 		}
 
 		public override void ViewDidLoad()
 		{
 			base.ViewDidLoad();
+
+			InitializeLocationManager();
+
+			_recenterMap = true;
+			_routeHasBeenCreated = false;
 
 			// set map type and show user location
 			map.MapType = MKMapType.Standard;
@@ -62,20 +94,136 @@ namespace TwoBirds
 			map.ScrollEnabled = true;
 
 			// set map center and region
-			CLLocationCoordinate2D mapCenter = new CLLocationCoordinate2D(lat_origin, long_origin);
-			MKCoordinateRegion mapRegion = new MKCoordinateRegion(mapCenter, new MKCoordinateSpan(.25, .25));
-			map.CenterCoordinate = mapCenter;
-			map.Region = mapRegion;
+			//CLLocationCoordinate2D mapCenter = new CLLocationCoordinate2D(lat_origin, long_origin);
+			//MKCoordinateRegion mapRegion = new MKCoordinateRegion(mapCenter, new MKCoordinateSpan(.25, .25));
+			//map.CenterCoordinate = mapCenter;
+			//map.Region = mapRegion;
 
-			var annotation1 = new BasicMapAnnotation(new CLLocationCoordinate2D(lat_origin, long_origin), title_origin, subtitle_origin);
-			map.AddAnnotation(annotation1);
-			var annotation2 = new BasicMapAnnotation(new CLLocationCoordinate2D(lat_dest, long_dest), title_dest, subtitle_dest);
-			map.AddAnnotation(annotation2);
+			//_locationAnnotationList.Add(new BasicMapAnnotation(new CLLocationCoordinate2D(lat_origin, long_origin), title_origin, subtitle_origin));
+			//map.AddAnnotation(_locationAnnotationList[0]);
+			if (!string.IsNullOrEmpty(MyFirstPage.ErrandsList[0].Text))
+			{
+				_iPhoneGeocoder.GeocodeAddress(MyFirstPage.ErrandsList[0].Text, (placemarks, error) =>
+				{
+					if ((placemarks != null) && (placemarks.Length > 0))
+					{
+						_errandLocationList.Add(new BasicMapAnnotation(placemarks[0].Location.Coordinate, "Errand 1", placemarks[0].Name));
+						map.AddAnnotation(_errandLocationList[0]);
+						CreateRoute();
+					}
+				});
+			}
 
 			var buttonRect = UIButton.FromType(UIButtonType.DetailDisclosure);
-			buttonRect.Center = new PointF(View.Frame.Right - 10, View.Frame.Top - 10);
-			Console.WriteLine(View.Frame);
+			buttonRect.Center = new PointF(View.Frame.Right - 20, View.Frame.Top + 20);
 			View.AddSubview(buttonRect);
+			buttonRect.TouchUpInside += _page.HandleTouchUpInside;
+		}
+
+		void InitializeLocationManager()
+		{
+			// initialize our location manager and callback handler
+			_iPhoneLocationManager = new CLLocationManager { DesiredAccuracy = 1000 };
+
+			_iPhoneGeocoder = new CLGeocoder();
+
+			// uncomment this if you want to use the delegate pattern:
+			//locationDelegate = new LocationDelegate (mainScreen);
+			//iPhoneLocationManager.Delegate = locationDelegate;
+
+			// you can set the update threshold and accuracy if you want:
+			//iPhoneLocationManager.DistanceFilter = 10; // move ten meters before updating
+			//iPhoneLocationManager.HeadingFilter = 3; // move 3 degrees before updating
+
+			// you can also set the desired accuracy:
+			// 1000 meters/1 kilometer
+			// you can also use presets, which simply evaluate to a double value:
+			//iPhoneLocationManager.DesiredAccuracy = CLLocation.AccuracyNearestTenMeters;
+
+			// handle the updated location method and update the UI
+			if (UIDevice.CurrentDevice.CheckSystemVersion(6, 0))
+			{
+				_iPhoneLocationManager.LocationsUpdated += (sender, e) =>
+				{
+					UpdateLocation(e.Locations[e.Locations.Length - 1]);
+				};
+			}
+			else
+			{
+#pragma warning disable 618
+				// this won't be called on iOS 6 (deprecated)
+				_iPhoneLocationManager.UpdatedLocation += (sender, e) =>
+				{
+					UpdateLocation(e.NewLocation);
+				};
+#pragma warning restore 618
+			}
+
+			//iOS 8 requires you to manually request authorization now - Note the Info.plist file has a new key called requestWhenInUseAuthorization added to.
+			if (UIDevice.CurrentDevice.CheckSystemVersion(8, 0))
+			{
+				_iPhoneLocationManager.RequestWhenInUseAuthorization();
+			}
+
+			// handle the updated heading method and update the UI
+			_iPhoneLocationManager.UpdatedHeading += (sender, e) =>
+			{
+			};
+
+			// start updating our location, et. al.
+			if (CLLocationManager.LocationServicesEnabled)
+				_iPhoneLocationManager.StartUpdatingLocation();
+			if (CLLocationManager.HeadingAvailable)
+				_iPhoneLocationManager.StartUpdatingHeading();
+		}
+
+		private void UpdateLocation(CLLocation newLocation)
+		{
+			if (_myLocation == null)
+			{
+				_myLocation = new BasicMapAnnotation(newLocation.Coordinate, "My Location", "My Starting Location");
+				map.AddAnnotation(_myLocation);
+			}
+			_myLocation.Coordinate = newLocation.Coordinate;
+
+//			if (!string.IsNullOrEmpty(MyFirstPage.MyLocation.Text))
+			{
+				_iPhoneGeocoder.ReverseGeocodeLocation(newLocation, (CLPlacemark[] placemarks, NSError error) =>
+				{
+					if ((placemarks != null) && (placemarks.Length > 0))
+					{
+						MyFirstPage.MyLocation.Text = placemarks[0].Name;
+						_myLocation.title = "My Location";
+						_myLocation.subtitle = placemarks[0].Name;
+
+						//New stuff for directions:
+						CreateRoute();
+					}
+				});
+			}
+
+			if (_recenterMap)
+			{
+				// set map center and region
+				CLLocationCoordinate2D mapCenter = new CLLocationCoordinate2D(newLocation.Coordinate.Latitude, newLocation.Coordinate.Longitude);
+				MKCoordinateRegion mapRegion = new MKCoordinateRegion(mapCenter, new MKCoordinateSpan(.025, .025));
+				map.CenterCoordinate = mapCenter;
+				map.Region = mapRegion;
+
+				_recenterMap = false;
+			}
+
+			//_startLocationAnnotation = new BasicMapAnnotation(new CLLocationCoordinate2D(lat_origin, long_origin), title_origin, subtitle_origin);
+
+			//MyFirstPage.MyLocation.Text = newLocation.Coordinate.Longitude.ToString();
+			//ms.LblAltitude.Text = newLocation.Altitude.ToString() + " meters";
+			//ms.LblLongitude.Text = newLocation.Coordinate.Longitude.ToString() + "º";
+			//ms.LblLatitude.Text = newLocation.Coordinate.Latitude.ToString() + "º";
+			//ms.LblCourse.Text = newLocation.Course.ToString() + "º";
+			//ms.LblSpeed.Text = newLocation.Speed.ToString() + " meters/s";
+
+			//// get the distance from here to paris
+			//ms.LblDistanceToParis.Text = (newLocation.DistanceFrom(new CLLocation(48.857, 2.351)) / 1000).ToString() + " km";
 		}
 
 		class BasicMapAnnotation : MKAnnotation
@@ -87,7 +235,7 @@ namespace TwoBirds
 			}
 
 			public CLLocationCoordinate2D Coords;
-			string title, subtitle;
+			public string title, subtitle;
 			public override string Title { get { return title; } }
 			public override string Subtitle { get { return subtitle; } }
 			public BasicMapAnnotation(CLLocationCoordinate2D coordinate, string title, string subtitle)
@@ -100,13 +248,19 @@ namespace TwoBirds
 
 		public void CreateRoute()
 		{
+			//if (_routeHasBeenCreated)
+			//	return;
+
+			if (_myLocation == null || _errandLocationList.Count == 0)
+				return;
+
 			//Create Origin and Dest Place Marks and Map Items to use for directions
 			var emptyDict = new NSDictionary();
 
-			var orignPlaceMark = new MKPlacemark(new CLLocationCoordinate2D(lat_origin, long_origin), emptyDict);
+			var orignPlaceMark = new MKPlacemark(_myLocation.Coordinate, emptyDict);
 			var sourceItem = new MKMapItem(orignPlaceMark);
 
-			var destPlaceMark = new MKPlacemark(new CLLocationCoordinate2D(lat_dest, long_dest), emptyDict);
+			var destPlaceMark = new MKPlacemark(_errandLocationList[0].Coordinate, emptyDict);
 			var destItem = new MKMapItem(destPlaceMark);
 
 			var request = new MKDirectionsRequest
@@ -129,6 +283,15 @@ namespace TwoBirds
 				}
 				else
 				{
+					MyThirdPage thirdPage = _page.ThirdPage as MyThirdPage;
+					thirdPage.Directions.Clear();
+
+					if (_myRoutes != null)
+						foreach (var route in _myRoutes)
+							map.RemoveOverlay(route.Polyline);
+
+					_myRoutes = response.Routes;
+
 					//Add each Polyline from route to map as overlay
 					foreach (var route in response.Routes)
 					{
@@ -136,12 +299,15 @@ namespace TwoBirds
 
 						foreach (var step in route.Steps)
 						{
+							thirdPage.Directions.Add(step.Instructions);
 							//add the step-by-step instructions to the UI
 							Console.WriteLine(step.Instructions);
 							//We can extract:
 							//Console.WriteLine(step.Distance);
 						}
 					}
+					thirdPage.MyListView.ItemsSource = thirdPage.Directions.ToArray();
+					_routeHasBeenCreated = true;
 				}
 			});
 		}

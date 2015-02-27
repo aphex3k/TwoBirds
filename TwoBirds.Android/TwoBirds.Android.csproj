@@ -16,7 +16,7 @@
     <AssemblyName>TwoBirds.Android</AssemblyName>
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
     <TargetFrameworkVersion>v4.4</TargetFrameworkVersion>
-    <NuGetPackageImportStamp>1b8f3698</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>e7183a47</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

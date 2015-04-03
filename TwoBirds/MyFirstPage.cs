@@ -53,7 +53,9 @@ namespace TwoBirds
 		        ErrandsList.Add(cell);
 	        }
 
-	        ErrandsList[0].Text = "1323 Highland Ave, Hollywood, CA 90028";
+			ErrandsList[0].Text = "Trader Joe's";
+			ErrandsList[1].Text = "Target";
+			ErrandsList[2].Text = "CVS";
 
 	        _tableView = new TableView
             {
@@ -139,8 +141,9 @@ namespace TwoBirds
 
         void OnButtonClicked(object sender, EventArgs e)
         {
+			Page page = (Page)Activator.CreateInstance(typeof(MySecondPage));
 			//Page page = (Page)Activator.CreateInstance(typeof(MapViewController));
-			this.Navigation.PushAsync(_page);
+			this.Navigation.PushAsync(page);
         }
 	}
 }

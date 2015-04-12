@@ -14,6 +14,8 @@ namespace TwoBirds
 
 		public List<String> Directions = new List<String>();
 
+		//public Binding GroupTitle;
+
 		public ListView MyListView;
 
 		public MyThirdPage ()
@@ -22,7 +24,13 @@ namespace TwoBirds
 
 			Heading = "This is the directions page";
 
-			MyListView = new ListView {ItemsSource = Directions.ToArray()};
+			MyListView = new ListView 
+			{
+				ItemsSource = Directions.ToArray()
+				//, IsGroupingEnabled = true
+				//, GroupDisplayBinding = GroupTitle //new Binding("LongTitle")
+			};
+			
 			Content = MyListView;
 		}
 	}

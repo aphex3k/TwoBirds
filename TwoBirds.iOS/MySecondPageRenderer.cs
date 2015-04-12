@@ -22,55 +22,6 @@ using System.Text;
 
 namespace TwoBirds.iOS
 {
-	public class Location
-	{
-		public double lat { get; set; }
-		public double lng { get; set; }
-	}
-
-	public class Geometry
-	{
-		public Location location { get; set; }
-	}
-
-	public class OpeningHours
-	{
-		public bool open_now { get; set; }
-		public List<object> weekday_text { get; set; }
-	}
-
-	public class Photo
-	{
-		public int height { get; set; }
-		public List<object> html_attributions { get; set; }
-		public string photo_reference { get; set; }
-		public int width { get; set; }
-	}
-
-	public class Result
-	{
-		public Geometry geometry { get; set; }
-		public string icon { get; set; }
-		public string id { get; set; }
-		public string name { get; set; }
-		public OpeningHours opening_hours { get; set; }
-		public List<Photo> photos { get; set; }
-		public string place_id { get; set; }
-		public double rating { get; set; }
-		public string reference { get; set; }
-		public string scope { get; set; }
-		public List<string> types { get; set; }
-		public string vicinity { get; set; }
-		public int? price_level { get; set; }
-	}
-
-	public class NearbySearch
-	{
-		public List<object> html_attributions { get; set; }
-		public List<Result> results { get; set; }
-		public string status { get; set; }
-	}
-
 	/// <summary>
 	/// Render this page using platform-specific UIKit controls
 	/// </summary>
@@ -81,28 +32,23 @@ namespace TwoBirds.iOS
 		private MKRoute[] _myRoutes;
 		MKMapViewDelegate _mapDelegate;
 
+		protected LoadingOverlay _loadPop = null;
+
 		CLLocationManager _iPhoneLocationManager;
 		private CLGeocoder _iPhoneGeocoder;
 
 		private bool _recenterMap = true;
 
-		double lat_origin = 33.285287;
-		double long_origin = -117.189992;
-		string title_origin = "My Location";
-		string subtitle_origin = "Starting Point";
-
-		double lat_dest = 33.128718;
-		double long_dest = -117.159529;
-		string title_dest = "Cal State San Marcos";
-		string subtitle_dest = "Central campus location";
-
 		private BasicMapAnnotation _myLocation;
-		private List<BasicMapAnnotation> _errandLocationList = new List<BasicMapAnnotation>();
+		//private List<BasicMapAnnotation> _errandLocationList = new List<BasicMapAnnotation>();
 
 		//hardcoded for now:
 		private bool _isRoundTrip = true;
 
-		//v2 for incorporating multiple locations
+		static NearbySearch l = new NearbySearch();
+
+		static List<ErrandResults> locationResults = new List<ErrandResults> ();
+
 		private List<BasicMapAnnotation> _errandLocations = new List<BasicMapAnnotation>();
 
 		private bool _routeHasBeenCreated = false;
@@ -142,6 +88,8 @@ namespace TwoBirds.iOS
 		{
 			base.ViewDidLoad();
 
+			DisplayLoadingState ();
+
 			InitializeLocationManager();
 
 			_recenterMap = true;
@@ -156,50 +104,6 @@ namespace TwoBirds.iOS
 			map.ShowsUserLocation = true;
 			map.ZoomEnabled = true;
 			map.ScrollEnabled = true;
-
-			// set map center and region
-			//CLLocationCoordinate2D mapCenter = new CLLocationCoordinate2D(lat_origin, long_origin);
-			//MKCoordinateRegion mapRegion = new MKCoordinateRegion(mapCenter, new MKCoordinateSpan(.25, .25));
-			//map.CenterCoordinate = mapCenter;
-			//map.Region = mapRegion;
-
-			//_locationAnnotationList.Add(new BasicMapAnnotation(new CLLocationCoordinate2D(lat_origin, long_origin), title_origin, subtitle_origin));
-			//map.AddAnnotation(_locationAnnotationList[0]);
-//
-//			if (!string.IsNullOrEmpty(MyFirstPage.ErrandsList[0].Text))
-//			{    
-//				//This checks if it's an address that's been entered
-//				//If it is, then we convert it to coordinates
-//				//and don't send it through the yelp api
-//				_iPhoneGeocoder.GeocodeAddress(MyFirstPage.ErrandsList[0].Text, (placemarks, error) =>
-//					{
-//						if ((placemarks != null) && (placemarks.Length > 0))
-//						{
-//							_errandLocationList.Add(new BasicMapAnnotation(placemarks[0].Location.Coordinate, "Errand 1", placemarks[0].Name));
-//							//2 lines taken out by Melissa while adding new stuff muliple location mapping:
-//							//map.AddAnnotation(_errandLocationList[0]);
-//							//CreateRoute();
-//					
-//						}
-//					});
-//			}
-
-
-
-				//                for (int i = 0; i < locationSequence.Count; i++) {
-				//                    for (int j = 0; j < locations.Count; j++) {
-				//                        if (locationSequence [i] == j) {
-				//                            //Add to _errandLocations list in optimized order and add annotations
-				//                            _errandLocations.Add (new BasicMapAnnotation (new CLLocationCoordinate2D (locations [j].Lat, locations [j].Long), locations [j].Title, locations [j].Subtitle));
-				//                        }
-				//                    }
-				//                }
-
-				//Add to _errandLocations list and add annotations 
-				//                _errandLocations.Add(new BasicMapAnnotation (new CLLocationCoordinate2D(locations[0]), "Melissa's house", "6566 Camino Del Rey, Bonsall, CA 92003"));
-				//                _errandLocations.Add(new BasicMapAnnotation (new CLLocationCoordinate2D(locations[1]), "Target", "1280 Auto Park Way, Escondido, CA 92029"));
-				//                _errandLocations.Add(new BasicMapAnnotation (new CLLocationCoordinate2D(locations[2]), "Jo-Ann Fabric", "1680 E Valley Parkway, Escondido, CA 92027"));
-				//                _errandLocations.Add(new BasicMapAnnotation (new CLLocationCoordinate2D(locations[3]), "Trader Joe's", "1885 S Centre City Pkwy\nEscondido, CA 92025"));
 		}
 
 		void InitializeLocationManager()
@@ -273,15 +177,22 @@ namespace TwoBirds.iOS
 		{
 			var googlePlaces = string.Format("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={0}", latlng);
 
-			var radius = "&radius=7500";
+			//Note: 
+			//radius max allowed = 50000, which is 31 miles
+			//can remove radius param and instead set "rankby=distance"
+			//--or- only if results come by empty, then search again with "rankby=distance"
+			//but may be bad on performance
+			//var radius = "&radius=7500";
 
-			var lastStringPart = "&sensor=false&key=AIzaSyDouP4A3_XqFdHn05S0u-f6CxBX0256ZtU";
+			var lastStringPart = "&rankby=distance&sensor=false&key=AIzaSyDouP4A3_XqFdHn05S0u-f6CxBX0256ZtU";
 
 			StringBuilder listOfTerms = new StringBuilder();
 
 			listOfTerms.Append("&name=" + errand);
 
-			string queryString = googlePlaces + radius + listOfTerms + lastStringPart;
+			//string queryString = googlePlaces + radius + listOfTerms + lastStringPart;
+
+			string queryString = googlePlaces + listOfTerms + lastStringPart;
 
 			WebClient webRequest = new WebClient();
 			string request = webRequest.DownloadString(queryString);
@@ -289,6 +200,7 @@ namespace TwoBirds.iOS
 			return JsonConvert.DeserializeObject<NearbySearch>(request);
 		}
 
+		//Get location info and map route
 		private void GetLocationInformation()
 		{
 			string latlng = null;
@@ -303,64 +215,65 @@ namespace TwoBirds.iOS
 			}
 
 			List<Coordinates> locations = new List<Coordinates>();
-			locations.Add(new Coordinates(_myLocation.Coordinate.Latitude, _myLocation.Coordinate.Longitude, "My Location", ""));
+			Coordinates origin = new Coordinates (_myLocation.Coordinate.Latitude, _myLocation.Coordinate.Longitude, "My Location", "");
+			locations.Add(origin);
+
+			//If static locationResults is not null or empty, clear it out 
+			//because we don't want to have a duplicate set of errands added
+			locationResults.Clear();
+			List<List<Coordinates>> closestLocationsPerErrand = new List<List<Coordinates>> (); 
 
 			for (int i = 0; i < MyFirstPage.ErrandsList.Count; i++)
 			{
-				NearbySearch l = GetNearbySearch(latlng, MyFirstPage.ErrandsList[i].Text);
-				locations.Add(new Coordinates(
-					l.results[i].geometry.location.lat,
-					l.results[i].geometry.location.lng,
-					l.results[i].name,
-					l.results[i].vicinity));
-			}
+				l = GetNearbySearch(latlng, MyFirstPage.ErrandsList[i].Text);
 
+				//Add to global results variable so that we can grab more locations from the list 
+				//if a user rejects a location
+				//Reject location functionality still in progress
+				locationResults.Add(new ErrandResults(l, null));
 
-			//when yelp api comes back, pass in the coordinates in for each of the 27 locations and set them in this list.NJK
-			//New code after Brett - to map multiple locations (not just two)
-			//This will be after it's been sent through the yelp api:
+				List<Coordinates> closestLocations = new List<Coordinates> ();
 
-
-			//Hit up mapquest api here to get optimized route:
-			string uri = "http://open.mapquestapi.com/directions/v2/optimizedroute?key=Fmjtd%7Cluu829u8l1%2Cb2%3Do5-9w1wgy&json={locations:[";
-
-			string param = "";
-			for (int i = 0; i < locations.Count; i++) {
-				if (i == locations.Count - 1) {
-					param += "{latLng:{lat:" + locations[i].Lat + ",lng:" + locations[i].Long + "}}]}";
-				} else {
-					param += "{latLng:{lat:" + locations[i].Lat + ",lng:" + locations[i].Long + "}},";
-				}
-			}
-
-			uri = uri + param;
-			WebClient webpage = new WebClient();
-			string source = webpage.DownloadString(uri);
-			JToken t = JToken.Parse(source);
-			string location_string;
-			int location_int;
-			List<int> locationSequence = new List<int>();
-
-			if (t["route"] != null && t["route"]["locationSequence"] != null) {
-				//locationSequence is zero indexed
-				foreach (var locationInt in t["route"]["locationSequence"]) 
+				if(l.results != null)
 				{
-					location_string = locationInt.ToString ();
-					location_int = int.Parse (location_string);
-					locationSequence.Add (location_int);
-					Console.WriteLine (location_int);
+					//send first 3 results of each errand to optimized route method
+					int maxResults = 3;
+					if (l.results.Count < 3) {
+						maxResults = l.results.Count;
+					}
 
-					foreach (var location in locations.Select((x,i) => new { Value = x, Index = i})) {
-						if (location_int == location.Index) {
-							//Add to _errandLocations list in optimized order and add annotations
-							_errandLocations.Add (new BasicMapAnnotation (new CLLocationCoordinate2D (location.Value.Lat, location.Value.Long), location.Value.Title, location.Value.Subtitle));
-						}
+					for(int j = 0; j < maxResults; j++)
+					{
+						closestLocations.Add(new Coordinates(
+							l.results[j].geometry.location.lat,
+							l.results[j].geometry.location.lng,
+							l.results[j].name,
+							l.results[j].vicinity));
 					}
 				}
 
-				foreach (var location in _errandLocations) {
-					map.AddAnnotation (location);
-				}
+				closestLocationsPerErrand.Add(closestLocations);
+			}
+
+			//Only hit up mapquest api for optimized route if there are 2 or more errands
+			if(closestLocationsPerErrand.Count > 1){
+				//Hit up mapquest api here to get optimized route:
+				RouteService routeService = new RouteService();
+				locations.AddRange(routeService.GetOptimizedRoute(origin, closestLocationsPerErrand));
+			} else {
+				locations.Add(new Coordinates(
+					l.results[0].geometry.location.lat,
+					l.results[0].geometry.location.lng,
+					l.results[0].name,
+					l.results[0].vicinity));
+			}
+
+			foreach (var location in locations) {
+				_errandLocations.Add (new BasicMapAnnotation (new CLLocationCoordinate2D (location.Lat, location.Long), location.Title, location.Subtitle));
+			}
+
+			foreach (var location in _errandLocations) {
+				map.AddAnnotation (location);
 			}
 		
 			CreateRoute();
@@ -369,6 +282,8 @@ namespace TwoBirds.iOS
 			buttonRect.Center = new PointF(View.Frame.Right - 20, View.Frame.Top + 20);
 			View.AddSubview(buttonRect);
 			buttonRect.TouchUpInside += _page.HandleTouchUpInside;
+
+			this._loadPop.Hide ();
 		}
 	
 		private void UpdateLocation(CLLocation newLocation)
@@ -390,7 +305,6 @@ namespace TwoBirds.iOS
 							_myLocation.title = "My Location";
 							_myLocation.subtitle = placemarks[0].Name;
 
-							//New stuff for directions:
 							CreateRoute();
 						}
 					});
@@ -401,45 +315,11 @@ namespace TwoBirds.iOS
 				// set map center and region
 				CLLocationCoordinate2D mapCenter = new CLLocationCoordinate2D(newLocation.Coordinate.Latitude, newLocation.Coordinate.Longitude);
 				MKCoordinateRegion mapRegion = new MKCoordinateRegion(mapCenter, new MKCoordinateSpan(.025, .025));
+				//MKCoordinateRegion mapRegion = getRegionForAnnotations(_errandLocations, mapCenter);
 				map.CenterCoordinate = mapCenter;
 				map.Region = mapRegion;
 
 				_recenterMap = false;
-			}
-		}
-
-		class BasicMapAnnotation : MKAnnotation
-		{
-			public override CLLocationCoordinate2D Coordinate
-			{
-				get { return this.Coords; }
-				set { this.Coords = value; }
-			}
-
-			public CLLocationCoordinate2D Coords;
-			public string title, subtitle;
-			public override string Title { get { return title; } }
-			public override string Subtitle { get { return subtitle; } }
-			public BasicMapAnnotation(CLLocationCoordinate2D coordinate, string title, string subtitle)
-			{
-				this.Coords = coordinate;
-				this.title = title;
-				this.subtitle = subtitle;
-			}
-		}
-
-		class Coordinates
-		{
-			public double Lat { get; set; }
-			public double Long { get; set; }
-			public string Title { get; set;}
-			public string Subtitle { get; set;}
-			public Coordinates(double lat, double lon, string title, string subtitle)
-			{
-				this.Lat = lat;
-				this.Long = lon;
-				this.Title = title;
-				this.Subtitle = subtitle;
 			}
 		}
 
@@ -487,6 +367,10 @@ namespace TwoBirds.iOS
 					if (error != null) {
 						Console.WriteLine (error.LocalizedDescription);
 					} else {
+						//To do:
+						//Separate directions to each location into "Groupings"
+						//We are working with a ListView on Page 3
+						//See: http://developer.xamarin.com/guides/cross-platform/xamarin-forms/working-with/listview/
 						MyThirdPage thirdPage = _page.ThirdPage as MyThirdPage;
 						thirdPage.Directions.Clear ();
 
@@ -499,6 +383,8 @@ namespace TwoBirds.iOS
 						//Add each Polyline from route to map as overlay
 						foreach (var route in response.Routes) {
 							map.AddOverlay (route.Polyline, MKOverlayLevel.AboveRoads);
+
+							//thirdPage.GroupTitle = new Binding("Some Title");
 
 							foreach (var step in route.Steps) {
 								thirdPage.Directions.Add (step.Instructions);
@@ -513,21 +399,12 @@ namespace TwoBirds.iOS
 					}
 				});
 			}
-		}
 
-		class MapDelegate : MKMapViewDelegate
-		{
-			//Override OverLayRenderer to draw Polyline from directions
-			public override MKOverlayRenderer OverlayRenderer(MKMapView mapView, IMKOverlay overlay)
-			{
-				if (overlay is MKPolyline)
-				{
-					var route = (MKPolyline)overlay;
-					var renderer = new MKPolylineRenderer(route) { StrokeColor = UIColor.Blue, LineWidth = 5.0f };
-					return renderer;
-				}
-				return null;
-			}
+			//Need to move region code to a new method:
+			CLLocationCoordinate2D mapCenter = new CLLocationCoordinate2D(_errandLocations[0].Coordinate.Latitude, _errandLocations[0].Coordinate.Longitude);
+			MKCoordinateRegion mapRegion = getRegionForAnnotations(_errandLocations, mapCenter);
+			map.CenterCoordinate = mapCenter;
+			map.Region = mapRegion;
 		}
 
 		private string GetLatLng(string address)
@@ -540,71 +417,55 @@ namespace TwoBirds.iOS
 			WebClient webpage = new WebClient();
 			string source = webpage.DownloadString(uri);
 
-			JToken t = JToken.Parse(source);
+			//JToken t = JToken.Parse(source);
 	
-
 			return source;
 		}
 	
-//		public string SearchDestinations(string[] terms, string ll)
-//		{
-//
-//			List<object> Businesses = new List<object>();
-//			YelpAPI.YelpAPIClient apiclient = new YelpAPI.YelpAPIClient();
-//			try
-//			{
-//				foreach (string t in terms)
-//				{
-//					//string encodedLocation = HttpContext.Current.Server.UrlEncode(ll);
-//					string encodedTerm = HttpContext.Current.Server.UrlEncode(t);
-//					var businesses = apiclient.Search(encodedTerm, ll);
-//					Businesses.Add(businesses);
-//				}
-//
-//				string businessString = JsonConvert.SerializeObject(Businesses);
-//
-//				resp = Request.CreateResponse(HttpStatusCode.OK, businessString);
-//				resp.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-//			}
-//			catch (Exception ex)
-//			{
-//				resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
-//			}
-//			return resp;
-//		}
 
-
+		//This method appears to still need some work to make the region large enough:
 		// returns a MKCoordinateRegion that encompasses an array of MKAnnotations
-		//        public MKCoordinateRegion getRegionForAnnotations(List<Coordinates> annotations) 
-		//        {
-		//
-		//            CLLocationDegrees minLat = 90.0;
-		//            CLLocationDegrees maxLat = -90.0;
-		//            CLLocationDegrees minLon = 180.0;
-		//            CLLocationDegrees maxLon = -180.0;
-		//
-		//            for (MKAnnotation annotation in annotations) {
-		//                if (annotation.coordinates.latitude < minLat) {
-		//                    minLat = annotation.coordinates.latitude;
-		//                }        
-		//                if (annotation.coordinates.longitude < minLon) {
-		//                    minLon = annotation.coordinates.longitude;
-		//                }        
-		//                if (annotation.coordinates.latitude > maxLat) {
-		//                    maxLat = annotation.coordinates.latitude;
-		//                }        
-		//                if (annotation.coordinates.longitude > maxLon) {
-		//                    maxLon = annotation.coordinates.longitude;
-		//                }
-		//            }
-		//
-		//            MKCoordinateSpan span = MKCoordinateSpanMake(maxLat - minLat, maxLon - minLon);
-		//
-		//            CLLocationCoordinate2D center = CLLocationCoordinate2DMake((maxLat - span.latitudeDelta / 2), maxLon - span.longitudeDelta / 2);
-		//
-		//            return MKCoordinateRegionMake(center, span);
-		//        }
+		public MKCoordinateRegion getRegionForAnnotations(List<BasicMapAnnotation> annotations, CLLocationCoordinate2D center) 
+        {
 
+			double minLat = 90.0;
+			double maxLat = -90.0;
+			double minLon = 180.0;
+			double maxLon = -180.0;
+
+			foreach (BasicMapAnnotation annotation in annotations) {
+                if (annotation.Coords.Latitude < minLat) {
+					minLat = annotation.Coords.Latitude;
+                }        
+				if (annotation.Coords.Longitude < minLon) {
+					minLon = annotation.Coords.Longitude;
+                }        
+				if (annotation.Coords.Latitude > maxLat) {
+					maxLat = annotation.Coords.Latitude;
+                }        
+				if (annotation.Coords.Longitude > maxLon) {
+					maxLon = annotation.Coords.Longitude;
+                }
+            }
+
+            MKCoordinateSpan span = new MKCoordinateSpan(maxLat - minLat, maxLon - minLon);
+
+            //CLLocationCoordinate2D center = new CLLocationCoordinate2D((maxLat - span.LatitudeDelta / 2), maxLon - span.LongitudeDelta / 2);
+
+            return new MKCoordinateRegion(center, span);
+        }
+
+		public void DisplayLoadingState()
+		{	
+			// Determine the correct size to start the overlay (depending on device orientation)
+			var bounds = UIScreen.MainScreen.Bounds; // portrait bounds
+//			if (UIApplication.SharedApplication.StatusBarOrientation == UIInterfaceOrientation.LandscapeLeft || UIApplication.SharedApplication.StatusBarOrientation == UIInterfaceOrientation.LandscapeRight) {
+//				bounds.Size = new CGSize(bounds.Size.Height, bounds.Size.Width);
+//			}
+			// show the loading overlay on the UI thread using the correct orientation sizing
+			this._loadPop = new LoadingOverlay (bounds);
+			this.View.Add ( this._loadPop );
+		}
 	}
 }
 

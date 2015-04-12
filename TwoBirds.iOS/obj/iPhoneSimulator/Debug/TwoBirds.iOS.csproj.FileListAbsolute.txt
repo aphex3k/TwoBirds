@@ -1,4 +1,4 @@
-C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.iOS\bin\iPhoneSimulator\Debug\TwoBirds.exe
+C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.iOS\bin\iPhoneSimulator\Debug\OneStone.exe
 C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.iOS\bin\iPhoneSimulator\Debug\TwoBirds.pdb
 C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.iOS\bin\iPhoneSimulator\Debug\TwoBirds.dll
 C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.iOS\bin\iPhoneSimulator\Debug\Xamarin.Forms.Core.dll
@@ -18,5 +18,5 @@ C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.iOS\obj\iPhoneSimulator\Debug
 C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.iOS\obj\iPhoneSimulator\Debug\Icon@2x.png
 C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.iOS\obj\iPhoneSimulator\Debug\Icon-60@2x.png
 C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.iOS\obj\iPhoneSimulator\Debug\TwoBirds.iOS.csprojResolveAssemblyReference.cache
-C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.iOS\obj\iPhoneSimulator\Debug\TwoBirds.exe
+C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.iOS\obj\iPhoneSimulator\Debug\OneStone.exe
 C:\Users\Brett\Documents\Xamarin\TwoBirds\TwoBirds.iOS\obj\iPhoneSimulator\Debug\TwoBirds.pdb

@@ -22,7 +22,7 @@ namespace TwoBirds
 
         public MyFirstPage()
         {
-            Label header = new Label
+			Label header = new Label
             {
                 Text = "Two Birds",
 				FontAttributes = FontAttributes.Bold,
@@ -33,7 +33,8 @@ namespace TwoBirds
 		    _myButton = new Button
 			{
 				Text = "+",
-				Font = Font.SystemFontOfSize(NamedSize.Large)
+				Font = Font.SystemFontOfSize(NamedSize.Large),
+				TextColor = Color.Maroon
 			};
 	        _myButton.Clicked += OnMyButtonClicked;
 
@@ -59,7 +60,7 @@ namespace TwoBirds
 
 	        _tableView = new TableView
             {
-                Intent = TableIntent.Form,
+				Intent = TableIntent.Form,
                 Root = new TableRoot()
                 {
 					new TableSection("My Location")
@@ -76,6 +77,7 @@ namespace TwoBirds
 						myViewCell
 					}
                 }
+
             };
 
 
@@ -85,7 +87,11 @@ namespace TwoBirds
                 Font = Font.SystemFontOfSize(NamedSize.Large),
                 BorderWidth = 1,
                 HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.CenterAndExpand
+                VerticalOptions = LayoutOptions.CenterAndExpand,
+				BackgroundColor = Color.Maroon,
+				TextColor = Color.White,
+				BorderColor = Color.Maroon,
+				WidthRequest = 90
             };
             button.Clicked += OnButtonClicked;
 
